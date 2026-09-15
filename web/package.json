@@ -1,0 +1,22 @@
+{
+  "name": "petid-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "latest",
+    "@fontsource-variable/manrope": "latest",
+    "@fontsource-variable/nunito-sans": "latest",
+    "astro": "latest"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "typescript": "latest"
+  }
+}

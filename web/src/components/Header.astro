@@ -1,0 +1,128 @@
+---
+import Brand from "./Brand.astro";
+import Icon from "./Icon.astro";
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <Brand compact />
+    <nav class="desktop-nav" aria-label="Navegación principal">
+      <a href="/">Inicio</a>
+      <a href="/mis-mascotas">Mis mascotas</a>
+      <a class="login-link" href="/login"><Icon name="user" size={18} /> Ingresar</a>
+    </nav>
+  </div>
+</header>
+
+<nav class="mobile-nav" aria-label="Navegación móvil">
+  <a href="/" data-nav="home"><Icon name="home" /><span>Inicio</span></a>
+  <a href="/mis-mascotas" data-nav="pets"><Icon name="pets" /><span>Mascotas</span></a>
+  <a href="/login" data-nav="user"><Icon name="user" /><span>Cuenta</span></a>
+</nav>
+
+<script>
+  const path = window.location.pathname;
+  const current = path.startsWith("/mis-mascotas") ? "pets" : path.startsWith("/login") || path.startsWith("/register") ? "user" : "home";
+  document.querySelector(`[data-nav="${current}"]`)?.setAttribute("aria-current", "page");
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    z-index: 30;
+    top: 0;
+    padding: 10px 14px;
+    background: rgba(247, 251, 253, 0.78);
+    backdrop-filter: blur(18px);
+  }
+
+  .header-inner {
+    display: flex;
+    width: min(100%, 1140px);
+    min-height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 auto;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    z-index: 40;
+    right: 14px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 22px;
+    color: rgba(255, 255, 255, 0.68);
+    background: rgba(11, 17, 22, 0.94);
+    box-shadow: 0 18px 40px rgba(8, 20, 27, 0.25);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-nav a {
+    display: flex;
+    min-height: 52px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 16px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+  }
+
+  .mobile-nav a[aria-current="page"] {
+    color: var(--white);
+    background: rgba(88, 198, 242, 0.19);
+  }
+
+  .mobile-nav a[aria-current="page"] :global(.icon) {
+    color: var(--sky-400);
+    transform: translateY(-1px);
+  }
+
+  @media (min-width: 760px) {
+    .site-header {
+      padding: 14px 28px;
+    }
+
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 0.87rem;
+      font-weight: 750;
+    }
+
+    .desktop-nav a {
+      transition: color 160ms ease;
+    }
+
+    .desktop-nav a:hover {
+      color: var(--sky-700);
+    }
+
+    .login-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 15px;
+      border-radius: 13px;
+      color: var(--white) !important;
+      background: var(--ink);
+    }
+
+    .mobile-nav {
+      display: none;
+    }
+  }
+</style>

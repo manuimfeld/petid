@@ -1,0 +1,12 @@
+.env
+.env.example
+api/.env
+api/node_modules/
+api/dist/
+api/coverage/
+web/.astro/
+web/dist/
+web/node_modules/
+web/.vercel/
+web/.env
+.DS_Store

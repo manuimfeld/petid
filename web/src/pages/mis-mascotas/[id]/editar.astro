@@ -1,0 +1,207 @@
+---
+import { Image } from "astro:assets";
+import Icon from "../../../components/Icon.astro";
+import PlaceAutocomplete from "../../../components/PlaceAutocomplete.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import paw from "../../../assets/petid-paw.png";
+import { API_URL, apiFetch, forwardedCookies, type OwnedPet } from "../../../lib/api";
+
+const { id = "" } = Astro.params;
+const result = await apiFetch<{ pets: OwnedPet[] }>("/api/v1/me/pets", {
+  headers: forwardedCookies(Astro.request),
+  cache: "no-store",
+});
+const pet = result.data?.pets?.find((item) => item.id === id);
+---
+
+<BaseLayout title={pet ? `Editar a ${pet.name} — PetID` : "Editar mascota — PetID"} noindex>
+  <main class="page narrow-page edit-page">
+    {!pet ? (
+      <section class="card unavailable fade-up">
+        <span><Icon name="shield" size={28} /></span>
+        <h1>No pudimos abrir este perfil</h1>
+        <p>Ingresá con la cuenta propietaria o volvé a “Mis mascotas”.</p>
+        <a class="button button-dark button-full" href="/mis-mascotas">Volver</a>
+      </section>
+    ) : (
+      <>
+        <section class="edit-heading fade-up">
+          <a class="back-link" href="/mis-mascotas">← Mis mascotas</a>
+          <p class="eyebrow">Editar perfil</p>
+          <h1>{pet.name}</h1>
+          <p class="lead">Los cambios se reflejan al instante en su PetID.</p>
+        </section>
+
+        <section class:list={["status-panel", { lost: pet.status === "lost" }]}>
+          <div class="mini-photo">
+            {pet.imageUrl ? <img src={pet.imageUrl} alt={`Foto de ${pet.name}`} /> : <Image src={paw} alt="" width={80} height={74} />}
+          </div>
+          <div><small>Estado actual</small><b>{pet.status === "lost" ? "Reportado como perdido" : "Está en casa"}</b></div>
+          <button id="status-button" class:list={["status-button", { danger: pet.status !== "lost" }]} data-next={pet.status === "lost" ? "recovered" : "lost"} type="button">
+            {pet.status === "lost" ? "Marcar recuperado" : "Marcar perdido"}
+          </button>
+        </section>
+
+        <form id="edit-form" class="card form-card form-grid fade-up" style="--delay: 70ms">
+          <label class="photo-field" for="photo">
+            <span class="photo-preview">
+              {pet.imageUrl ? <img src={pet.imageUrl} alt={`Foto actual de ${pet.name}`} /> : <Icon name="camera" size={27} />}
+            </span>
+            <span><b>Cambiar foto</b><small>JPG, PNG o WebP · máximo 5 MB</small></span>
+            <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" />
+          </label>
+          <div class="field"><label for="name">Nombre</label><input class="input" id="name" name="name" maxlength="80" value={pet.name} required /></div>
+          <div class="field"><label for="description">Descripción</label><textarea class="input" id="description" name="description" maxlength="1000">{pet.description}</textarea></div>
+          <div class="field">
+            <label>Ubicación pública</label>
+            <PlaceAutocomplete address={pet.address} googlePlaceId={pet.googlePlaceId} latitude={pet.latitude} longitude={pet.longitude} />
+            <small>Elegí una sugerencia de Google para actualizar el punto exacto.</small>
+          </div>
+          <div class="field"><label for="whatsapp">WhatsApp público</label><input class="input" id="whatsapp" name="whatsapp" type="tel" maxlength="24" value={pet.whatsapp} required /></div>
+          <div class="form-message" id="edit-message" role="status"></div>
+          <button class="button button-primary button-full" type="submit"><Icon name="check" /> Guardar cambios</button>
+        </form>
+
+        <a class="button button-ghost button-full view-profile" href={`/pet/${pet.id}`}>Ver perfil público <span>↗</span></a>
+      </>
+    )}
+  </main>
+</BaseLayout>
+
+{pet && (
+  <script is:inline define:vars={{ API_URL, id }}>
+    const message = document.querySelector("#edit-message");
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.dataset.visible = "true";
+      message.dataset.type = type;
+    }
+
+    const photoInput = document.querySelector("#photo");
+    const photoPreview = document.querySelector(".photo-preview");
+    photoInput?.addEventListener("change", () => {
+      const file = photoInput.files?.[0];
+      if (!file) return;
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+        photoInput.value = "";
+        return showMessage("La foto debe ser JPG, PNG o WebP y pesar como máximo 5 MB.", "error");
+      }
+      const image = document.createElement("img");
+      image.src = URL.createObjectURL(file);
+      image.alt = "Nueva foto de la mascota";
+      photoPreview.replaceChildren(image);
+    });
+
+    async function uploadPetPhoto(file) {
+      const signatureResponse = await fetch(`${API_URL}/api/v1/uploads/pet-images/signature`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qrId: id }),
+      });
+      const upload = await signatureResponse.json().catch(() => ({}));
+      if (!signatureResponse.ok) throw new Error("No pudimos preparar la subida de la foto.");
+      if (file.size > upload.maxBytes || !upload.allowedMimeTypes.includes(file.type)) {
+        throw new Error("La foto no cumple el formato o tamaño permitido.");
+      }
+      const body = new FormData();
+      body.append("file", file);
+      body.append("api_key", upload.apiKey);
+      body.append("signature", upload.signature);
+      Object.entries(upload.params).forEach(([key, value]) => body.append(key, String(value)));
+      const cloudResponse = await fetch(upload.uploadUrl, { method: "POST", body });
+      const cloudImage = await cloudResponse.json().catch(() => ({}));
+      if (!cloudResponse.ok || cloudImage.public_id !== upload.params.public_id) {
+        throw new Error("No pudimos subir la foto. Intentá nuevamente.");
+      }
+      return cloudImage.public_id;
+    }
+
+    const form = document.querySelector("#edit-form");
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector("button[type='submit']");
+      button.disabled = true;
+      const values = new FormData(form);
+      try {
+        if (!values.get("googlePlaceId") || !values.get("latitude") || !values.get("longitude")) {
+          throw new Error("Elegí una ubicación de las sugerencias de Google.");
+        }
+        const photo = photoInput?.files?.[0];
+        const imageKey = photo ? await uploadPetPhoto(photo) : undefined;
+        const response = await fetch(`${API_URL}/api/v1/me/pets/${id}`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: values.get("name"),
+            description: values.get("description"),
+            address: values.get("address"),
+            googlePlaceId: values.get("googlePlaceId"),
+            latitude: values.get("latitude"),
+            longitude: values.get("longitude"),
+            whatsapp: values.get("whatsapp"),
+            ...(imageKey ? { imageKey } : {}),
+          }),
+        });
+        if (!response.ok) throw new Error();
+        showMessage("Cambios guardados correctamente.", "success");
+      } catch (error) {
+        showMessage(error instanceof Error ? error.message : "No pudimos guardar los cambios.", "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.querySelector("#status-button")?.addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const next = button.dataset.next;
+      const confirmation = next === "lost"
+        ? "¿Querés marcar a esta mascota como perdida? El aviso será público."
+        : "¿Confirmás que la mascota volvió a casa?";
+      if (!window.confirm(confirmation)) return;
+      button.disabled = true;
+      try {
+        const response = await fetch(`${API_URL}/api/v1/me/pets/${id}/${next}`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error();
+        window.location.reload();
+      } catch {
+        showMessage("No pudimos actualizar el estado.", "error");
+        button.disabled = false;
+      }
+    });
+  </script>
+)}
+
+<style>
+  .edit-page { padding-top: 24px; }
+  .edit-heading { padding: 7px 3px 20px; }
+  .edit-heading h1 { margin-bottom: 6px; font-size: 2.8rem; }
+  .edit-heading .lead { margin: 0; }
+  .back-link { display: inline-flex; margin-bottom: 28px; color: var(--sky-700); font-size: .78rem; font-weight: 800; }
+  .status-panel { display: grid; grid-template-columns: auto 1fr; gap: 11px 13px; align-items: center; margin-bottom: 14px; padding: 14px; border: 1px solid #bde6d1; border-radius: var(--radius-md); background: var(--success-soft); }
+  .status-panel.lost { border-color: #f4c1c5; background: var(--danger-soft); }
+  .mini-photo { display: grid; width: 54px; height: 54px; place-items: center; overflow: hidden; border-radius: 16px; background: var(--white); }
+  .mini-photo :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .mini-photo :global(img[src*="petid-paw"]) { width: 80%; height: 80%; object-fit: contain; }
+  .status-panel > div:nth-child(2) { display: grid; }
+  .status-panel small { color: var(--muted); font-size: .64rem; }
+  .status-panel b { font-size: .79rem; }
+  .status-button { grid-column: 1 / -1; min-height: 40px; padding: 0 14px; border-radius: 12px; color: var(--success); background: var(--white); cursor: pointer; font-size: .72rem; font-weight: 850; }
+  .status-button.danger { color: var(--danger-dark); }
+  .view-profile { margin-top: 13px; }
+  .photo-field { display: flex; align-items: center; gap: 14px; padding: 12px; border: 1px dashed #afd3e3; border-radius: 17px; cursor: pointer; background: var(--sky-50); }
+  .photo-field input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .photo-field > span:nth-child(2) { display: grid; gap: 2px; font-size: .84rem; }
+  .photo-field small { color: var(--muted); font-size: .68rem; }
+  .photo-preview { display: grid; width: 58px; height: 58px; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 16px; color: var(--sky-700); background: var(--white); box-shadow: var(--shadow-sm); }
+  .photo-preview :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .unavailable { margin-top: 8vh; padding: 30px 24px; text-align: center; }
+  .unavailable > span { display: grid; width: 60px; height: 60px; place-items: center; margin: 0 auto 20px; border-radius: 19px; color: var(--sky-700); background: var(--sky-100); }
+  .unavailable h1 { font-size: 2.3rem; }
+  .unavailable p { color: var(--muted); }
+  @media (min-width: 540px) { .status-panel { grid-template-columns: auto 1fr auto; } .status-button { grid-column: auto; } }
+</style>

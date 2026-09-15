@@ -1,0 +1,118 @@
+---
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { API_URL } from "../lib/api";
+---
+
+<BaseLayout title="Ingresar — PetID" noindex>
+  <main class="page narrow-page auth-page">
+    <section class="auth-intro fade-up">
+      <span class="mini-mark"><Icon name="pets" size={27} /></span>
+      <p class="eyebrow">Bienvenido de vuelta</p>
+      <h1>Ingresá a tu cuenta</h1>
+      <p class="lead">Tus mascotas y sus datos, siempre a mano.</p>
+    </section>
+
+    <section class="card form-card fade-up" style="--delay: 80ms">
+      <button class="button google-button button-full" id="google-login" type="button">
+        <span class="google-g">G</span> Continuar con Google
+      </button>
+      <div class="split-line">o ingresá con email</div>
+      <form id="login-form" class="form-grid">
+        <div class="field">
+          <label for="email">Email</label>
+          <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required />
+        </div>
+        <div class="field">
+          <div class="label-row"><label for="password">Contraseña</label><a href="/forgot-password">¿La olvidaste?</a></div>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" minlength="8" placeholder="••••••••" required />
+        </div>
+        <div class="form-message" id="form-message" role="status"></div>
+        <button class="button button-primary button-full" type="submit">Ingresar <Icon name="arrow" /></button>
+      </form>
+      <p class="auth-switch">¿Todavía no tenés cuenta? <a id="register-link" href="/register">Creala gratis</a></p>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ API_URL }}>
+  const params = new URLSearchParams(window.location.search);
+  const candidate = params.get("returnTo") || "/mis-mascotas";
+  const returnTo = candidate.startsWith("/") && !candidate.startsWith("//") ? candidate : "/mis-mascotas";
+  const registerLink = document.querySelector("#register-link");
+  registerLink?.setAttribute("href", `/register?returnTo=${encodeURIComponent(returnTo)}`);
+
+  const form = document.querySelector("#login-form");
+  const message = document.querySelector("#form-message");
+
+  function showMessage(text) {
+    message.textContent = text;
+    message.dataset.visible = "true";
+    message.dataset.type = "error";
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector("button[type='submit']");
+    button.disabled = true;
+    message.dataset.visible = "false";
+    const values = new FormData(form);
+    try {
+      const response = await fetch(`${API_URL}/api/auth/sign-in/email`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: values.get("email"), password: values.get("password") }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("Primero verificá tu email. Te enviamos un nuevo enlace.");
+        }
+        throw new Error(data.message || "No pudimos ingresar con esos datos.");
+      }
+      window.location.assign(returnTo);
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message : "No pudimos conectar con la API.");
+      button.disabled = false;
+    }
+  });
+
+  document.querySelector("#google-login")?.addEventListener("click", async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/sign-in/social`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: "google",
+          callbackURL: `${window.location.origin}${returnTo}`,
+          errorCallbackURL: `${window.location.origin}/login?oauthError=1&returnTo=${encodeURIComponent(returnTo)}`,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) throw new Error("Google todavía no está configurado en la API local.");
+      window.location.assign(data.url);
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message : "No pudimos iniciar con Google.");
+    }
+  });
+
+  if (params.get("oauthError")) {
+    showMessage("No pudimos completar el acceso con Google. Intentá nuevamente.");
+  }
+</script>
+
+<style>
+  .auth-page { padding-top: 34px; }
+  .auth-intro { text-align: center; }
+  .auth-intro h1 { font-size: clamp(2.15rem, 10vw, 3.4rem); }
+  .auth-intro .lead { margin-bottom: 24px; }
+  .mini-mark { display: grid; width: 56px; height: 56px; place-items: center; margin: 0 auto 20px; border-radius: 19px; color: var(--sky-700); background: var(--sky-100); transform: rotate(-5deg); }
+  .form-card { display: grid; gap: 21px; }
+  .google-button { border: 1px solid var(--line); color: var(--ink); background: var(--white); }
+  .google-g { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; color: #4285f4; background: #f3f7ff; font-weight: 900; }
+  .label-row { display: flex; justify-content: space-between; gap: 10px; }
+  .label-row a, .auth-switch a { color: var(--sky-700); font-size: .78rem; font-weight: 800; }
+  .auth-switch { margin: 0; color: var(--muted); font-size: .8rem; text-align: center; }
+</style>

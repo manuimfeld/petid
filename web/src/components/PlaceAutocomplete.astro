@@ -1,0 +1,108 @@
+---
+interface Props {
+  address?: string | null;
+  googlePlaceId?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
+}
+
+const {
+  address = "",
+  googlePlaceId = "",
+  latitude = "",
+  longitude = "",
+} = Astro.props;
+const googleMapsApiKey = import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY || "";
+---
+
+<div
+  class="place-picker"
+  data-place-picker
+  data-address={address}
+  data-place-id={googlePlaceId}
+  data-latitude={latitude}
+  data-longitude={longitude}
+>
+  <div class="autocomplete-host"></div>
+  <input type="hidden" name="address" value={address} />
+  <input type="hidden" name="googlePlaceId" value={googlePlaceId} />
+  <input type="hidden" name="latitude" value={latitude} />
+  <input type="hidden" name="longitude" value={longitude} />
+  <p class="place-status" aria-live="polite">
+    {googleMapsApiKey ? "Elegí una sugerencia para confirmar el punto exacto." : "Configurá Google Maps para seleccionar la ubicación."}
+  </p>
+</div>
+
+<script is:inline define:vars={{ googleMapsApiKey }}>
+  function loadGoogleMaps(key) {
+    if (window.google?.maps?.importLibrary) return Promise.resolve(window.google);
+    if (window.__petidGoogleMapsPromise) return window.__petidGoogleMapsPromise;
+    window.__petidGoogleMapsPromise = new Promise((resolve, reject) => {
+      const callback = `petidMapsReady${Date.now()}`;
+      window[callback] = () => {
+        delete window[callback];
+        resolve(window.google);
+      };
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&loading=async&libraries=places&v=weekly&language=es&callback=${callback}`;
+      script.async = true;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+    return window.__petidGoogleMapsPromise;
+  }
+
+  async function initializePlacePickers() {
+    const pickers = document.querySelectorAll("[data-place-picker]:not([data-ready])");
+    if (!pickers.length || !googleMapsApiKey) return;
+    try {
+      await loadGoogleMaps(googleMapsApiKey);
+      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+      pickers.forEach((picker) => {
+        picker.dataset.ready = "true";
+        const host = picker.querySelector(".autocomplete-host");
+        const status = picker.querySelector(".place-status");
+        const autocomplete = new PlaceAutocompleteElement({
+          requestedLanguage: "es",
+          requestedRegion: "ar",
+        });
+        autocomplete.placeholder = "Buscá calle, número y localidad";
+        autocomplete.value = picker.dataset.address || "";
+        host.appendChild(autocomplete);
+
+        autocomplete.addEventListener("gmp-select", async (event) => {
+          status.textContent = "Confirmando ubicación…";
+          try {
+            const place = event.placePrediction.toPlace();
+            await place.fetchFields({ fields: ["id", "formattedAddress", "location"] });
+            if (!place.location || !place.formattedAddress || !place.id) throw new Error();
+            picker.querySelector('[name="address"]').value = place.formattedAddress;
+            picker.querySelector('[name="googlePlaceId"]').value = place.id;
+            picker.querySelector('[name="latitude"]').value = String(place.location.lat());
+            picker.querySelector('[name="longitude"]').value = String(place.location.lng());
+            status.textContent = `Ubicación confirmada: ${place.formattedAddress}`;
+            status.dataset.valid = "true";
+          } catch {
+            status.textContent = "No pudimos confirmar ese lugar. Elegí otra sugerencia.";
+            status.dataset.valid = "false";
+          }
+        });
+      });
+    } catch {
+      pickers.forEach((picker) => {
+        picker.querySelector(".place-status").textContent = "Google Maps no pudo cargarse. Revisá la conexión e intentá nuevamente.";
+      });
+    }
+  }
+
+  initializePlacePickers();
+</script>
+
+<style>
+  .place-picker { display: grid; gap: 8px; }
+  .autocomplete-host { min-height: 54px; }
+  .autocomplete-host :global(gmp-place-autocomplete) { width: 100%; min-height: 52px; color-scheme: light; }
+  .place-status { margin: 0; color: var(--muted); font-size: .72rem; }
+  .place-status[data-valid="true"] { color: var(--success); font-weight: 700; }
+  .place-status[data-valid="false"] { color: var(--danger-dark); }
+</style>

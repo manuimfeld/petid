@@ -1,0 +1,76 @@
+---
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { API_URL } from "../lib/api";
+---
+
+<BaseLayout title="Crear cuenta — PetID" noindex>
+  <main class="page narrow-page auth-page">
+    <section class="auth-intro fade-up">
+      <span class="mini-mark"><Icon name="heart" size={26} /></span>
+      <p class="eyebrow">Tu espacio PetID</p>
+      <h1>Creá tu cuenta</h1>
+      <p class="lead">Un único lugar para cuidar todos sus perfiles.</p>
+    </section>
+    <section class="card form-card fade-up" style="--delay: 80ms">
+      <form id="register-form" class="form-grid">
+        <div class="field"><label for="name">Tu nombre</label><input class="input" id="name" name="name" autocomplete="name" maxlength="80" placeholder="¿Cómo te llamás?" required /></div>
+        <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required /></div>
+        <div class="field"><label for="password">Contraseña</label><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Al menos 8 caracteres" required /><small>Usá una combinación que no reutilices en otros sitios.</small></div>
+        <div class="form-message" id="form-message" role="status"></div>
+        <button class="button button-primary button-full" type="submit">Crear mi cuenta <Icon name="arrow" /></button>
+      </form>
+      <p class="auth-switch">¿Ya tenés cuenta? <a id="login-link" href="/login">Ingresá</a></p>
+      <p class="auth-switch">¿Primero entraste con Google? <a href="/forgot-password">Creá una contraseña</a></p>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ API_URL }}>
+  const params = new URLSearchParams(window.location.search);
+  const candidate = params.get("returnTo") || "/mis-mascotas";
+  const returnTo = candidate.startsWith("/") && !candidate.startsWith("//") ? candidate : "/mis-mascotas";
+  document.querySelector("#login-link")?.setAttribute("href", `/login?returnTo=${encodeURIComponent(returnTo)}`);
+  const form = document.querySelector("#register-form");
+  const message = document.querySelector("#form-message");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector("button[type='submit']");
+    button.disabled = true;
+    message.dataset.visible = "false";
+    const values = new FormData(form);
+    try {
+      const response = await fetch(`${API_URL}/api/auth/sign-up/email`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.get("name"),
+          email: values.get("email"),
+          password: values.get("password"),
+          callbackURL: `${window.location.origin}/email-verificado?returnTo=${encodeURIComponent(returnTo)}`,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "No pudimos crear la cuenta. Quizás ese email ya está registrado.");
+      const email = String(values.get("email") || "");
+      window.location.assign(`/verifica-tu-email?email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`);
+    } catch (error) {
+      message.textContent = error instanceof Error ? error.message : "No pudimos conectar con la API.";
+      message.dataset.visible = "true";
+      message.dataset.type = "error";
+      button.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .auth-page { padding-top: 34px; }
+  .auth-intro { text-align: center; }
+  .auth-intro h1 { font-size: clamp(2.15rem, 10vw, 3.4rem); }
+  .auth-intro .lead { margin-bottom: 24px; }
+  .mini-mark { display: grid; width: 56px; height: 56px; place-items: center; margin: 0 auto 20px; border-radius: 19px; color: var(--sky-700); background: var(--sky-100); transform: rotate(5deg); }
+  .form-card { display: grid; gap: 21px; }
+  .auth-switch { margin: 0; color: var(--muted); font-size: .8rem; text-align: center; }
+  .auth-switch a { color: var(--sky-700); font-weight: 800; }
+</style>

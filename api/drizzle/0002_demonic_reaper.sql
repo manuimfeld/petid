@@ -1,0 +1,1 @@
+CREATE INDEX "available_qrs_batch_idx" ON "available_qrs" USING btree ("batch");

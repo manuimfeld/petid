@@ -1,0 +1,87 @@
+---
+import { Image } from "astro:assets";
+import Icon from "../../components/Icon.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import paw from "../../assets/petid-paw.png";
+import { apiFetch, forwardedCookies, type OwnedPet } from "../../lib/api";
+
+const result = await apiFetch<{ pets: OwnedPet[] }>("/api/v1/me/pets", {
+  headers: forwardedCookies(Astro.request),
+  cache: "no-store",
+});
+const authenticated = result.status !== 401;
+const pets = result.data?.pets ?? [];
+---
+
+<BaseLayout title="Mis mascotas — PetID" noindex>
+  <main class="page pets-page">
+    <section class="page-title fade-up">
+      <div><p class="eyebrow">Mi familia</p><h1>Mis mascotas</h1><p class="lead">Sus perfiles, siempre cerca.</p></div>
+      {authenticated && <a class="avatar" href="/login" aria-label="Mi cuenta"><Icon name="user" /></a>}
+    </section>
+
+    {!authenticated ? (
+      <section class="card empty-card fade-up" style="--delay: 80ms">
+        <span class="empty-icon"><Icon name="user" size={28} /></span>
+        <h2>Ingresá para verlas</h2>
+        <p>Accedé a los perfiles que tenés asociados a tu cuenta.</p>
+        <a class="button button-primary button-full" href="/login?returnTo=%2Fmis-mascotas">Ingresar a mi cuenta</a>
+      </section>
+    ) : pets.length === 0 ? (
+      <section class="card empty-card fade-up" style="--delay: 80ms">
+        <span class="empty-icon"><Icon name="scan" size={28} /></span>
+        <h2>Todavía no hay mascotas</h2>
+        <p>Escaneá una medalla PetID disponible para crear el primer perfil.</p>
+        <a class="button button-dark button-full" href="/pet/PETIDTEST002">Probar con un QR local</a>
+      </section>
+    ) : (
+      <section class="pet-grid">
+        {pets.map((pet, index) => (
+          <article class="pet-card card fade-up" style={`--delay: ${index * 70}ms`}>
+            <a class="pet-image" href={`/pet/${pet.id}`}>
+              {pet.imageUrl ? <img src={pet.imageUrl} alt={`Foto de ${pet.name}`} /> : <Image src={paw} alt="" width={180} height={165} />}
+              <span class:list={["pet-status", { lost: pet.status === "lost" }]}><i></i>{pet.status === "lost" ? "Perdido" : "En casa"}</span>
+            </a>
+            <div class="pet-info">
+              <div><h2>{pet.name}</h2><p>PetID · {pet.id}</p></div>
+              <a class="edit-link" href={`/mis-mascotas/${pet.id}/editar`} aria-label={`Editar a ${pet.name}`}><Icon name="edit" /></a>
+            </div>
+          </article>
+        ))}
+        <a class="add-card fade-up" href="/pet/PETIDTEST002">
+          <span>+</span><div><b>Activar otra medalla</b><small>Sumá una mascota a tu familia</small></div>
+        </a>
+      </section>
+    )}
+  </main>
+</BaseLayout>
+
+<style>
+  .pets-page { max-width: 900px; }
+  .page-title { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px 23px; }
+  .page-title h1 { margin-bottom: 4px; font-size: 2.8rem; }
+  .page-title .lead { margin: 0; }
+  .avatar { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 16px; color: var(--sky-700); background: var(--sky-100); }
+  .empty-card { margin-top: 5vh; padding: 34px 24px; text-align: center; }
+  .empty-card h2 { font-size: 2rem; }
+  .empty-card p { color: var(--muted); }
+  .empty-icon { display: grid; width: 62px; height: 62px; place-items: center; margin: 0 auto 22px; border-radius: 20px; color: var(--sky-700); background: var(--sky-100); }
+  .pet-grid { display: grid; gap: 14px; }
+  .pet-card { overflow: hidden; }
+  .pet-image { position: relative; display: block; height: 235px; overflow: hidden; background: linear-gradient(145deg, #dff5fd, #8fdafa); }
+  .pet-image > :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .pet-image > :global(img[src*="petid-paw"]) { width: 50%; height: 72%; margin: 12% auto; object-fit: contain; filter: drop-shadow(0 12px 18px rgba(0,120,170,.2)); }
+  .pet-status { position: absolute; top: 14px; left: 14px; display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 999px; color: #0d6d48; background: rgba(255,255,255,.9); font-size: .68rem; font-weight: 800; box-shadow: var(--shadow-sm); }
+  .pet-status i { width: 7px; height: 7px; border-radius: 50%; background: #24b77a; }
+  .pet-status.lost { color: var(--danger-dark); }
+  .pet-status.lost i { background: var(--danger); animation: softPulse 1.8s infinite; }
+  .pet-info { display: flex; align-items: center; justify-content: space-between; padding: 17px 18px; }
+  .pet-info h2 { margin: 0 0 2px; font-size: 1.55rem; }
+  .pet-info p { margin: 0; color: var(--muted); font-size: .66rem; }
+  .edit-link { display: grid; width: 43px; height: 43px; place-items: center; border-radius: 14px; color: var(--sky-700); background: var(--sky-50); }
+  .add-card { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px dashed #acd4e4; border-radius: var(--radius-md); background: rgba(237,249,255,.6); }
+  .add-card > span { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 14px; color: var(--white); background: var(--sky-600); font-size: 1.6rem; }
+  .add-card > div { display: grid; }
+  .add-card small { color: var(--muted); }
+  @media (min-width: 680px) { .pet-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } .add-card { min-height: 330px; flex-direction: column; justify-content: center; text-align: center; } }
+</style>

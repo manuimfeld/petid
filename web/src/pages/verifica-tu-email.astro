@@ -1,0 +1,62 @@
+---
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { API_URL } from "../lib/api";
+---
+
+<BaseLayout title="Verificá tu email — PetID" noindex>
+  <main class="page narrow-page result-page">
+    <section class="card result-card fade-up">
+      <span><Icon name="heart" size={29} /></span>
+      <p class="eyebrow">Un paso más</p>
+      <h1>Revisá tu email</h1>
+      <p>Te enviamos un enlace para confirmar tu dirección. Revisá también spam o correo no deseado.</p>
+      <div class="form-message" id="form-message" role="status"></div>
+      <button class="button button-primary button-full" id="resend" type="button">Reenviar enlace</button>
+      <a class="button button-ghost button-full" href="/login">Volver al ingreso</a>
+      <p class="hint">Si ya tenías una cuenta con Google y querés agregar contraseña, usá <a id="recovery-link" href="/forgot-password">recuperar acceso</a>.</p>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline define:vars={{ API_URL }}>
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get("email") || "";
+  const returnToCandidate = params.get("returnTo") || "/mis-mascotas";
+  const returnTo = returnToCandidate.startsWith("/") && !returnToCandidate.startsWith("//") ? returnToCandidate : "/mis-mascotas";
+  const message = document.querySelector("#form-message");
+  const button = document.querySelector("#resend");
+  document.querySelector("#recovery-link")?.setAttribute("href", `/forgot-password?email=${encodeURIComponent(email)}`);
+
+  button?.addEventListener("click", async () => {
+    if (!email) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`${API_URL}/api/auth/send-verification-email`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, callbackURL: `${window.location.origin}/email-verificado?returnTo=${encodeURIComponent(returnTo)}` }),
+      });
+      if (!response.ok) throw new Error();
+      message.textContent = "Listo. Si la cuenta necesita verificación, recibirá un nuevo enlace.";
+      message.dataset.type = "success";
+    } catch {
+      message.textContent = "No pudimos reenviar el enlace. Intentá nuevamente en unos minutos.";
+      message.dataset.type = "error";
+    } finally {
+      message.dataset.visible = "true";
+      button.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .result-card { margin-top: 7vh; padding: 34px 24px; text-align: center; }
+  .result-card > span { display: grid; width: 60px; height: 60px; place-items: center; margin: 0 auto 22px; border-radius: 19px; color: var(--sky-700); background: var(--sky-100); }
+  .result-card h1 { font-size: 2.4rem; }
+  .result-card > p { color: var(--muted); }
+  .result-card .button { margin-top: 12px; }
+  .hint { margin: 20px 0 0; font-size: .78rem; }
+  .hint a { color: var(--sky-700); font-weight: 800; }
+</style>

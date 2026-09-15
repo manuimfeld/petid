@@ -1,0 +1,285 @@
+---
+import { Image } from "astro:assets";
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import packaging from "../assets/petid-packaging.jpeg";
+---
+
+<BaseLayout>
+  <main class="page home-page">
+    <section class="hero">
+      <div class="hero-copy fade-up">
+        <p class="eyebrow">Siempre cerca</p>
+        <h1>Una pequeña medalla.<br/><span>Una gran tranquilidad.</span></h1>
+        <p class="lead">PetID guarda la información esencial de tu mascota en un QR para que quien la encuentre pueda ayudarte a traerla de vuelta.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/pet/PETIDTEST002">Activar mi PetID <Icon name="arrow" /></a>
+          <a class="text-link" href="/pet/PETIDTEST001">Ver perfil de muestra <span>↗</span></a>
+        </div>
+        <div class="trust-row">
+          <span><Icon name="shield" size={18} /> Perfil protegido</span>
+          <span><Icon name="scan" size={18} /> Sin apps</span>
+        </div>
+      </div>
+
+      <div class="product-stage fade-up" style="--delay: 120ms">
+        <span class="stage-label">Tu compañero, identificado</span>
+        <div class="product-glow"></div>
+        <Image src={packaging} alt="Packaging y medalla PetID de color celeste" widths={[420, 700, 1024]} sizes="(max-width: 759px) 88vw, 480px" loading="eager" />
+        <div class="floating-note note-one"><Icon name="map" size={18} /><span><b>Ubicación</b> a un toque</span></div>
+        <div class="floating-note note-two"><Icon name="heart" size={18} /><span>Hecho para<br/><b>volver a casa</b></span></div>
+      </div>
+    </section>
+
+    <section class="how section">
+      <div class="section-heading fade-up">
+        <p class="eyebrow">Simple de verdad</p>
+        <h2>Tres pasos. Cero vueltas.</h2>
+        <p>La persona que encuentra a tu mascota no instala nada ni crea una cuenta.</p>
+      </div>
+      <div class="steps">
+        <article class="step-card fade-up" style="--delay: 60ms">
+          <span class="step-number">01</span>
+          <span class="step-icon"><Icon name="scan" size={27} /></span>
+          <h3>Escanea</h3>
+          <p>La cámara abre el perfil digital al instante.</p>
+        </article>
+        <article class="step-card fade-up" style="--delay: 120ms">
+          <span class="step-number">02</span>
+          <span class="step-icon"><Icon name="pets" size={27} /></span>
+          <h3>Reconoce</h3>
+          <p>Ve su foto, nombre y si está reportada como perdida.</p>
+        </article>
+        <article class="step-card fade-up" style="--delay: 180ms">
+          <span class="step-number">03</span>
+          <span class="step-icon"><Icon name="whatsapp" size={27} /></span>
+          <h3>Contacta</h3>
+          <p>Abre WhatsApp y la ubicación sin perder tiempo.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="closing-card fade-up">
+      <div>
+        <p class="eyebrow">PetID</p>
+        <h2>Su historia y su hogar,<br/>en un solo lugar.</h2>
+      </div>
+      <a class="button button-dark" href="/pet/PETIDTEST002">Empezar ahora <Icon name="arrow" /></a>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 34px;
+    align-items: center;
+  }
+
+  .hero-copy {
+    padding-top: 14px;
+  }
+
+  h1 span {
+    color: var(--sky-600);
+  }
+
+  .hero-copy .lead {
+    max-width: 590px;
+    margin-bottom: 25px;
+  }
+
+  .hero-actions {
+    display: grid;
+    gap: 17px;
+  }
+
+  .text-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .text-link span {
+    color: var(--sky-600);
+    font-size: 1.1rem;
+  }
+
+  .trust-row {
+    display: flex;
+    gap: 18px;
+    margin-top: 27px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .trust-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .trust-row :global(.icon) {
+    color: var(--sky-600);
+  }
+
+  .product-stage {
+    position: relative;
+    isolation: isolate;
+    min-height: 390px;
+    padding: 28px 18px 0;
+    overflow: hidden;
+    border-radius: 34px;
+    color: var(--white);
+    background: #070a0d;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .product-stage :global(img) {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-height: 470px;
+    margin: 12px auto 0;
+    object-fit: contain;
+    mix-blend-mode: screen;
+    animation: float 5.5s ease-in-out infinite;
+  }
+
+  .stage-label {
+    position: relative;
+    z-index: 3;
+    display: block;
+    color: rgba(255,255,255,.65);
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.13em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .product-glow {
+    position: absolute;
+    z-index: 0;
+    right: -20%;
+    bottom: -25%;
+    width: 85%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(43, 179, 235, 0.36);
+    filter: blur(60px);
+  }
+
+  .floating-note {
+    position: absolute;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 13px;
+    color: rgba(255,255,255,.8);
+    background: rgba(16, 24, 30, 0.72);
+    box-shadow: 0 12px 26px rgba(0,0,0,.3);
+    font-size: 0.63rem;
+    line-height: 1.35;
+    backdrop-filter: blur(12px);
+  }
+
+  .floating-note b { color: var(--white); }
+  .floating-note :global(.icon) { color: var(--sky-400); }
+  .note-one { left: 12px; bottom: 22%; }
+  .note-two { right: 12px; bottom: 8%; }
+
+  .section-heading {
+    max-width: 540px;
+  }
+
+  .section-heading > p:last-child {
+    color: var(--muted);
+  }
+
+  .steps {
+    display: grid;
+    gap: 12px;
+  }
+
+  .step-card {
+    position: relative;
+    padding: 20px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,.78);
+  }
+
+  .step-number {
+    position: absolute;
+    top: 14px;
+    right: 17px;
+    color: #d3e5ed;
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 900;
+  }
+
+  .step-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    margin-bottom: 20px;
+    border-radius: 15px;
+    color: var(--sky-700);
+    background: var(--sky-100);
+  }
+
+  .step-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+
+  .closing-card {
+    display: grid;
+    gap: 20px;
+    margin-top: 34px;
+    padding: 28px 24px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    color: var(--white);
+    background:
+      radial-gradient(circle at 90% 10%, rgba(88,198,242,.35), transparent 20rem),
+      var(--ink);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .closing-card .eyebrow { color: var(--sky-400); }
+  .closing-card .button-dark { color: var(--ink); background: var(--white); }
+
+  @media (min-width: 760px) {
+    .hero {
+      grid-template-columns: 1.03fr .97fr;
+      gap: 58px;
+      min-height: 650px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .product-stage { min-height: 540px; padding: 34px; }
+    .product-stage :global(img) { max-height: 480px; }
+    .steps { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .step-card { min-height: 240px; padding: 25px; }
+    .closing-card { grid-template-columns: 1fr auto; align-items: center; padding: 50px; }
+    .closing-card .button { width: auto; }
+  }
+</style>

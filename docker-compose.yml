@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: petid-postgress
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: petid
+      POSTGRES_USER: petid
+      POSTGRES_PASSWORD: petid_local_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - petid_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petid -d petid"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  petid_postgres_data:

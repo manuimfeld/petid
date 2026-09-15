@@ -1,0 +1,64 @@
+---
+import { Image } from "astro:assets";
+import paw from "../assets/petid-paw.png";
+
+interface Props {
+  compact?: boolean;
+  inverse?: boolean;
+}
+
+const { compact = false, inverse = false } = Astro.props;
+---
+
+<a class:list={["brand", { compact, inverse }]} href="/" aria-label="PetID, inicio">
+  <span class="brand-mark"><Image src={paw} alt="" width={compact ? 32 : 39} height={compact ? 30 : 36} /></span>
+  <span class="brand-name"><span>Pet</span>ID</span>
+</a>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 900;
+    letter-spacing: -0.06em;
+  }
+
+  .brand.compact {
+    gap: 7px;
+    font-size: 1.42rem;
+  }
+
+  .brand-mark {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--white);
+    box-shadow: 0 6px 16px rgba(15, 130, 179, 0.18);
+  }
+
+  .compact .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+  }
+
+  .brand-mark :global(img) {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+  }
+
+  .brand-name span {
+    color: var(--sky-500);
+  }
+
+  .inverse {
+    color: var(--white);
+  }
+</style>

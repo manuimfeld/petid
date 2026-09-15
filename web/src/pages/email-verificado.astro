@@ -1,0 +1,39 @@
+---
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Email verificado — PetID" noindex>
+  <main class="page narrow-page result-page">
+    <section class="card result-card fade-up">
+      <span><Icon name="check" size={30} /></span>
+      <p class="eyebrow">Cuenta protegida</p>
+      <h1>Email verificado</h1>
+      <p id="result-copy">Tu cuenta ya está lista. Te llevamos a tus mascotas.</p>
+      <a class="button button-primary button-full" id="continue-link" href="/mis-mascotas">Continuar</a>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  const params = new URLSearchParams(window.location.search);
+  const returnToCandidate = params.get("returnTo") || "/mis-mascotas";
+  const returnTo = returnToCandidate.startsWith("/") && !returnToCandidate.startsWith("//") ? returnToCandidate : "/mis-mascotas";
+  const link = document.querySelector("#continue-link");
+  const copy = document.querySelector("#result-copy");
+  if (params.get("error")) {
+    copy.textContent = "El enlace venció o ya fue utilizado. Solicitá uno nuevo desde el ingreso.";
+    link.textContent = "Volver al ingreso";
+    link.setAttribute("href", "/login");
+  } else {
+    link.setAttribute("href", returnTo);
+    setTimeout(() => window.location.assign(returnTo), 1400);
+  }
+</script>
+
+<style>
+  .result-card { margin-top: 9vh; padding: 38px 24px; text-align: center; }
+  .result-card > span { display: grid; width: 64px; height: 64px; place-items: center; margin: 0 auto 22px; border-radius: 50%; color: var(--success); background: var(--success-soft); }
+  .result-card h1 { font-size: 2.4rem; }
+  .result-card > p { color: var(--muted); }
+</style>

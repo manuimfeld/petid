@@ -1,0 +1,46 @@
+---
+import Brand from "./Brand.astro";
+---
+
+<footer>
+  <div class="footer-inner">
+    <Brand compact inverse />
+    <p>Identificación inteligente para mascotas.</p>
+    <small>Hecho con amor para que vuelvan a casa.</small>
+  </div>
+</footer>
+
+<style>
+  footer {
+    display: none;
+    padding: 55px 32px;
+    color: rgba(255, 255, 255, 0.68);
+    background: var(--ink);
+  }
+
+  .footer-inner {
+    display: grid;
+    width: min(100%, 1140px);
+    grid-template-columns: 1fr auto;
+    gap: 8px 40px;
+    align-items: center;
+    margin: 0 auto;
+  }
+
+  p, small {
+    margin: 0;
+  }
+
+  p {
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  small {
+    grid-column: 2;
+  }
+
+  @media (min-width: 760px) {
+    footer { display: block; }
+  }
+</style>
