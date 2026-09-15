@@ -9,4 +9,5 @@ web/dist/
 web/node_modules/
 web/.vercel/
 web/.env
+api/.env.production
 .DS_Store

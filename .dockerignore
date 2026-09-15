@@ -1,0 +1,12 @@
+.git
+.env
+**/.env
+**/.env.production
+**/node_modules
+**/dist
+web/.astro
+web/.vercel
+web/dist
+admin/dist
+admin/.vite
+*.log

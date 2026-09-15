@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: petid
+      POSTGRES_USER: petid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en api/.env.production}
+    volumes:
+      - petid_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petid -d petid"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - petid_internal
+
+  migrate:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: builder
+    env_file:
+      - ./api/.env.production
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npm", "run", "db:migrate"]
+    restart: "no"
+    networks:
+      - petid_internal
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+      target: runtime
+    env_file:
+      - ./api/.env.production
+    ports:
+      - "127.0.0.1:4000:4000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks:
+      - petid_internal
+
+volumes:
+  petid_postgres_data:
+
+networks:
+  petid_internal:
+    driver: bridge
