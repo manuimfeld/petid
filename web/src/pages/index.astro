@@ -5,7 +5,29 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import packaging from "../assets/petid-packaging.jpeg";
 ---
 
-<BaseLayout>
+<BaseLayout
+  title="PetID | Medalla QR para mascotas en Argentina"
+  description="Identificá a tu perro o gato con una medalla QR PetID. Su perfil, datos de contacto y hogar siempre al alcance de quien lo encuentre."
+>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "PetID",
+        url: "https://petid.com.ar/",
+        logo: "https://petid.com.ar/favicon.svg",
+        description: "Identificación inteligente para mascotas mediante medallas QR.",
+        areaServed: "AR",
+      },
+      {
+        "@type": "WebSite",
+        name: "PetID",
+        url: "https://petid.com.ar/",
+        inLanguage: "es-AR",
+      },
+    ],
+  })} />
   <main class="page home-page">
     <section class="hero">
       <div class="hero-copy fade-up">

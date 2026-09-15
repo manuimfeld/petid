@@ -15,6 +15,7 @@ const {
   description = "El perfil digital de tu mascota, siempre al alcance de un QR.",
   noindex = false,
 } = Astro.props;
+const canonicalUrl = `https://petid.com.ar${Astro.url.pathname === "/" ? "/" : Astro.url.pathname.replace(/\/$/, "")}`;
 
 const sessionResult = await apiFetch("/api/v1/me", {
   headers: forwardedCookies(Astro.request),
@@ -31,6 +32,7 @@ const authenticated = sessionResult.status === 200;
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7fbfd" />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {!noindex && <link rel="canonical" href={canonicalUrl} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://res.cloudinary.com" />
     <title>{title}</title>
