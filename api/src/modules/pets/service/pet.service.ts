@@ -44,7 +44,7 @@ export async function getPublicPet(qrId: string) {
       id: pet.id,
       name: pet.name,
       description: pet.description,
-      imageUrl: pet.imageUrl,
+      imageUrl: pet.imageKey ? petImageUrl(pet.imageKey) : pet.imageUrl,
       address: pet.address,
       province: pet.province,
       locality: pet.locality,

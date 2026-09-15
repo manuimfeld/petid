@@ -65,8 +65,8 @@ export function petImageUrl(publicId: string) {
   return cloudinary.url(publicId, {
     secure: true,
     transformation: [
-      { width: 1200, height: 1200, crop: "limit" },
-      { quality: "auto:good", fetch_format: "auto" },
+      { width: 1000, height: 1000, crop: "limit" },
+      { quality: "auto:eco", fetch_format: "auto" },
     ],
   });
 }
