@@ -1,108 +1,89 @@
 ---
 interface Props {
-  address?: string | null;
-  googlePlaceId?: string | null;
-  latitude?: string | number | null;
-  longitude?: string | number | null;
+  province?: string | null;
+  locality?: string | null;
+  street?: string | null;
+  streetNumber?: string | null;
 }
 
-const {
-  address = "",
-  googlePlaceId = "",
-  latitude = "",
-  longitude = "",
-} = Astro.props;
-const googleMapsApiKey = import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY || "";
+const { province = "", locality = "", street = "", streetNumber = "" } = Astro.props;
+const initialAddress = [street, streetNumber, locality, province].filter(Boolean).join(", ");
 ---
 
-<div
-  class="place-picker"
-  data-place-picker
-  data-address={address}
-  data-place-id={googlePlaceId}
-  data-latitude={latitude}
-  data-longitude={longitude}
->
-  <div class="autocomplete-host"></div>
-  <input type="hidden" name="address" value={address} />
-  <input type="hidden" name="googlePlaceId" value={googlePlaceId} />
-  <input type="hidden" name="latitude" value={latitude} />
-  <input type="hidden" name="longitude" value={longitude} />
-  <p class="place-status" aria-live="polite">
-    {googleMapsApiKey ? "Elegí una sugerencia para confirmar el punto exacto." : "Configurá Google Maps para seleccionar la ubicación."}
-  </p>
+<div class="location-fields" data-location-fields>
+  <div class="location-row">
+    <label class="field"><span>Provincia</span><select class="input" name="province" required data-province><option value="">Cargando provincias…</option></select></label>
+    <label class="field"><span>Localidad</span><select class="input" name="locality" required data-locality disabled><option value="">Elegí una provincia</option></select></label>
+  </div>
+  <div class="location-row">
+    <label class="field"><span>Calle</span><input class="input" name="street" value={street} maxlength="180" placeholder="Ej. Av. Corrientes" required data-street /></label>
+    <label class="field"><span>Altura</span><input class="input" name="streetNumber" value={streetNumber} maxlength="20" placeholder="Ej. 1234" required data-street-number /></label>
+  </div>
+  <input type="hidden" name="address" value={initialAddress} data-address />
+  <p class="place-status">Escribí la calle y la altura. La dirección se mostrará tal como la completes.</p>
 </div>
 
-<script is:inline define:vars={{ googleMapsApiKey }}>
-  function loadGoogleMaps(key) {
-    if (window.google?.maps?.importLibrary) return Promise.resolve(window.google);
-    if (window.__petidGoogleMapsPromise) return window.__petidGoogleMapsPromise;
-    window.__petidGoogleMapsPromise = new Promise((resolve, reject) => {
-      const callback = `petidMapsReady${Date.now()}`;
-      window[callback] = () => {
-        delete window[callback];
-        resolve(window.google);
-      };
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&loading=async&libraries=places&v=weekly&language=es&callback=${callback}`;
-      script.async = true;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-    return window.__petidGoogleMapsPromise;
+<script is:inline define:vars={{ province, locality }}>
+  const root = document.currentScript?.previousElementSibling;
+  const provinceSelect = root?.querySelector("[data-province]");
+  const localitySelect = root?.querySelector("[data-locality]");
+  const addressInput = root?.querySelector("[data-address]");
+  const streetInput = root?.querySelector("[data-street]");
+  const numberInput = root?.querySelector("[data-street-number]");
+  const baseUrl = "https://apis.datos.gob.ar/georef/api";
+
+  function syncAddress() {
+    if (!addressInput) return;
+    const parts = [streetInput?.value.trim(), numberInput?.value.trim(), localitySelect?.value, provinceSelect?.selectedOptions?.[0]?.textContent].filter(Boolean);
+    addressInput.value = parts.join(", ");
   }
 
-  async function initializePlacePickers() {
-    const pickers = document.querySelectorAll("[data-place-picker]:not([data-ready])");
-    if (!pickers.length || !googleMapsApiKey) return;
+  async function loadLocalities(provinceId) {
+    localitySelect.disabled = true;
+    localitySelect.replaceChildren(new Option("Cargando localidades…", ""));
     try {
-      await loadGoogleMaps(googleMapsApiKey);
-      const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-      pickers.forEach((picker) => {
-        picker.dataset.ready = "true";
-        const host = picker.querySelector(".autocomplete-host");
-        const status = picker.querySelector(".place-status");
-        const autocomplete = new PlaceAutocompleteElement({
-          requestedLanguage: "es",
-          requestedRegion: "ar",
-        });
-        autocomplete.placeholder = "Buscá calle, número y localidad";
-        autocomplete.value = picker.dataset.address || "";
-        host.appendChild(autocomplete);
-
-        autocomplete.addEventListener("gmp-select", async (event) => {
-          status.textContent = "Confirmando ubicación…";
-          try {
-            const place = event.placePrediction.toPlace();
-            await place.fetchFields({ fields: ["id", "formattedAddress", "location"] });
-            if (!place.location || !place.formattedAddress || !place.id) throw new Error();
-            picker.querySelector('[name="address"]').value = place.formattedAddress;
-            picker.querySelector('[name="googlePlaceId"]').value = place.id;
-            picker.querySelector('[name="latitude"]').value = String(place.location.lat());
-            picker.querySelector('[name="longitude"]').value = String(place.location.lng());
-            status.textContent = `Ubicación confirmada: ${place.formattedAddress}`;
-            status.dataset.valid = "true";
-          } catch {
-            status.textContent = "No pudimos confirmar ese lugar. Elegí otra sugerencia.";
-            status.dataset.valid = "false";
-          }
-        });
-      });
+      const response = await fetch(`${baseUrl}/localidades?provincia=${encodeURIComponent(provinceId)}&max=5000&orden=nombre`);
+      const data = await response.json();
+      localitySelect.replaceChildren(new Option("Seleccioná una localidad", ""));
+      data.localidades.forEach((item) => localitySelect.append(new Option(item.nombre, item.nombre)));
+      const selected = [...localitySelect.options].find((option) => option.value === locality);
+      if (selected) localitySelect.value = selected.value;
+      localitySelect.disabled = false;
+      syncAddress();
     } catch {
-      pickers.forEach((picker) => {
-        picker.querySelector(".place-status").textContent = "Google Maps no pudo cargarse. Revisá la conexión e intentá nuevamente.";
-      });
+      localitySelect.replaceChildren(new Option("No se pudieron cargar", ""));
     }
   }
 
-  initializePlacePickers();
+  async function loadProvinces() {
+    try {
+      const response = await fetch(`${baseUrl}/provincias?max=100&orden=nombre`);
+      const data = await response.json();
+      provinceSelect.replaceChildren(new Option("Seleccioná una provincia", ""));
+      data.provincias.forEach((item) => provinceSelect.append(new Option(item.nombre, item.id)));
+      const selected = [...provinceSelect.options].find((option) => option.textContent === province);
+      if (selected) {
+        provinceSelect.value = selected.value;
+        await loadLocalities(selected.value);
+      }
+    } catch {
+      provinceSelect.replaceChildren(new Option("No se pudieron cargar", ""));
+    }
+  }
+
+  provinceSelect?.addEventListener("change", (event) => {
+    if (event.target.value) loadLocalities(event.target.value);
+    syncAddress();
+  });
+  [streetInput, numberInput, localitySelect].forEach((input) => input?.addEventListener("input", syncAddress));
+  loadProvinces();
 </script>
 
 <style>
-  .place-picker { display: grid; gap: 8px; }
-  .autocomplete-host { min-height: 54px; }
-  .autocomplete-host :global(gmp-place-autocomplete) { width: 100%; min-height: 52px; color-scheme: light; }
+  .location-fields { display: grid; gap: 12px; }
+  .location-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { display: grid; gap: 6px; }
+  .field > span { font-size: .85rem; font-weight: 700; }
   .place-status { margin: 0; color: var(--muted); font-size: .72rem; }
-  .place-status[data-valid="true"] { color: var(--success); font-weight: 700; }
-  .place-status[data-valid="false"] { color: var(--danger-dark); }
+  @media (max-width: 520px) { .location-row { grid-template-columns: 1fr; } }
 </style>

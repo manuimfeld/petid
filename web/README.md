@@ -30,10 +30,8 @@ Abrir `http://127.0.0.1:4321`.
 ## Variables
 
 `PUBLIC_API_URL` indica dónde está Fastify. En local usa `http://127.0.0.1:4000`.
-`PUBLIC_GOOGLE_MAPS_API_KEY` habilita el autocompletado de direcciones y el mapa
-público exacto. En Google Cloud hay que activar **Places API (New)**,
-**Maps JavaScript API** y **Maps Embed API**, y restringir la clave a los
-dominios del frontend.
+La provincia y localidad se cargan desde el servicio oficial GeoRef; la calle y
+la altura se escriben manualmente. No se usan Google Maps ni claves de mapas.
 
 En producción se recomienda usar dominios hermanos, por ejemplo `app.petid.com` para Vercel y `api.petid.com` para Fastify. La API debe configurar `COOKIE_DOMAIN=petid.com` para que las páginas SSR privadas reciban la sesión.
 

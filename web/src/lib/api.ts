@@ -6,6 +6,10 @@ export interface PublicPet {
   description: string | null;
   imageUrl: string | null;
   address: string;
+  province: string;
+  locality: string;
+  street: string;
+  streetNumber: string;
   googlePlaceId: string | null;
   latitude: string | null;
   longitude: string | null;

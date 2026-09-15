@@ -54,8 +54,8 @@ const pet = result.data?.pets?.find((item) => item.id === id);
           <div class="field"><label for="description">Descripción</label><textarea class="input" id="description" name="description" maxlength="1000">{pet.description}</textarea></div>
           <div class="field">
             <label>Ubicación pública</label>
-            <PlaceAutocomplete address={pet.address} googlePlaceId={pet.googlePlaceId} latitude={pet.latitude} longitude={pet.longitude} />
-            <small>Elegí una sugerencia de Google para actualizar el punto exacto.</small>
+            <PlaceAutocomplete province={pet.province} locality={pet.locality} street={pet.street} streetNumber={pet.streetNumber} />
+            <small>La dirección será pública para facilitar el regreso.</small>
           </div>
           <div class="field"><label for="whatsapp">WhatsApp público</label><input class="input" id="whatsapp" name="whatsapp" type="tel" maxlength="24" value={pet.whatsapp} required /></div>
           <div class="form-message" id="edit-message" role="status"></div>
@@ -124,9 +124,6 @@ const pet = result.data?.pets?.find((item) => item.id === id);
       button.disabled = true;
       const values = new FormData(form);
       try {
-        if (!values.get("googlePlaceId") || !values.get("latitude") || !values.get("longitude")) {
-          throw new Error("Elegí una ubicación de las sugerencias de Google.");
-        }
         const photo = photoInput?.files?.[0];
         const imageKey = photo ? await uploadPetPhoto(photo) : undefined;
         const response = await fetch(`${API_URL}/api/v1/me/pets/${id}`, {
@@ -136,11 +133,12 @@ const pet = result.data?.pets?.find((item) => item.id === id);
           body: JSON.stringify({
             name: values.get("name"),
             description: values.get("description"),
-            address: values.get("address"),
-            googlePlaceId: values.get("googlePlaceId"),
-            latitude: values.get("latitude"),
-            longitude: values.get("longitude"),
-            whatsapp: values.get("whatsapp"),
+           address: values.get("address"),
+            province: values.get("province"),
+            locality: values.get("locality"),
+           street: values.get("street"),
+           streetNumber: values.get("streetNumber"),
+           whatsapp: values.get("whatsapp"),
             ...(imageKey ? { imageKey } : {}),
           }),
         });

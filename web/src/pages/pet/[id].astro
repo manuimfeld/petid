@@ -24,18 +24,9 @@ const isNotFound = result.status === 404;
 const isUnavailable = result.status === 0;
 const state = result.data?.state;
 const pet = result.data?.state === "activated" ? result.data.pet : null;
-const mapUrl = pet
-  ? pet.latitude && pet.longitude
-    ? `https://www.google.com/maps/search/?api=1&query=${pet.latitude},${pet.longitude}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pet.address)}`
-  : "#";
 const whatsappUrl = pet
   ? `https://wa.me/${pet.whatsapp}?text=${encodeURIComponent(`Hola, escaneé la medalla PetID de ${pet.name}.`)}`
   : "#";
-const googleMapsApiKey = import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY || "";
-const mapEmbedUrl = pet?.latitude && pet?.longitude && googleMapsApiKey
-  ? `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(googleMapsApiKey)}&q=${encodeURIComponent(`${pet.latitude},${pet.longitude}`)}&zoom=16`
-  : null;
 ---
 
 <BaseLayout title={pet ? `${pet.name} — PetID` : `Medalla ${id} — PetID`} noindex>
@@ -88,8 +79,8 @@ const mapEmbedUrl = pet?.latitude && pet?.longitude && googleMapsApiKey
 
           <div class="field"><label for="name">Nombre de la mascota</label><input class="input" id="name" name="name" maxlength="80" placeholder="Ej. Mora" required /></div>
           <div class="field"><label for="description">Descripción <span>opcional</span></label><textarea class="input" id="description" name="description" maxlength="1000" placeholder="Cómo es, cuidados importantes, señas particulares..."></textarea></div>
-          <div class="field"><label>Ubicación de su hogar</label><PlaceAutocomplete /><small>La dirección y el punto exacto serán públicos para facilitar el regreso.</small></div>
-          <div class="field"><label for="whatsapp">WhatsApp de contacto</label><input class="input" id="whatsapp" name="whatsapp" type="tel" maxlength="24" autocomplete="tel" placeholder="Ej. +54 9 11 5555 1234" required /><small>Incluí el código de país y de área.</small></div>
+          <div class="field"><label>Ubicación de su hogar</label><PlaceAutocomplete /><small>La dirección será pública para facilitar el regreso.</small></div>
+          <div class="field"><label for="whatsapp">WhatsApp de contacto</label><input class="input" id="whatsapp" name="whatsapp" type="tel" maxlength="24" autocomplete="tel" value="+54 9 " required /><small>Para celulares argentinos: +54 9 + código de área + número.</small></div>
 
           <label class="checkbox">
             <input name="acceptsPublicData" type="checkbox" required />
@@ -126,16 +117,10 @@ const mapEmbedUrl = pet?.latitude && pet?.longitude && googleMapsApiKey
 
         <section class="urgent-actions fade-up" style="--delay: 80ms">
           <a class="button whatsapp-button button-full" href={whatsappUrl} target="_blank" rel="noreferrer"><Icon name="whatsapp" /> Contactar por WhatsApp</a>
-          {mapEmbedUrl && (
-            <div class="map-frame card">
-              <iframe title={`Ubicación de ${pet.name}`} src={mapEmbedUrl} loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-            </div>
-          )}
-          <a class="location-card card" href={mapUrl} target="_blank" rel="noreferrer">
+          <div class="location-card card">
             <span class="location-icon"><Icon name="map" /></span>
             <span><small>Mi hogar está en</small><b>{pet.address}</b></span>
-            <span class="round-arrow">↗</span>
-          </a>
+          </div>
         </section>
 
         <section class="care-note fade-up" style="--delay: 140ms">
@@ -217,9 +202,6 @@ const mapEmbedUrl = pet?.latitude && pet?.longitude && googleMapsApiKey
     message.dataset.visible = "false";
     const values = new FormData(form);
     try {
-      if (!values.get("googlePlaceId") || !values.get("latitude") || !values.get("longitude")) {
-        throw new Error("Elegí una ubicación de las sugerencias de Google.");
-      }
       const photo = photoInput?.files?.[0];
       const imageKey = photo ? await uploadPetPhoto(photo) : undefined;
       const response = await fetch(`${API_URL}/api/v1/activation-drafts`, {
@@ -230,11 +212,12 @@ const mapEmbedUrl = pet?.latitude && pet?.longitude && googleMapsApiKey
           qrId: id,
           name: values.get("name"),
           description: values.get("description") || undefined,
-          address: values.get("address"),
-          googlePlaceId: values.get("googlePlaceId"),
-          latitude: values.get("latitude"),
-          longitude: values.get("longitude"),
-          whatsapp: values.get("whatsapp"),
+         address: values.get("address"),
+          province: values.get("province"),
+          locality: values.get("locality"),
+         street: values.get("street"),
+         streetNumber: values.get("streetNumber"),
+         whatsapp: values.get("whatsapp"),
           imageKey,
           acceptsPublicData: values.get("acceptsPublicData") === "on",
         }),
