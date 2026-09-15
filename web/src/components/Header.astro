@@ -1,10 +1,11 @@
 ---
 import Brand from "./Brand.astro";
 import Icon from "./Icon.astro";
+import { API_URL } from "../lib/api";
 
 interface Props { authenticated?: boolean; }
 const { authenticated = false } = Astro.props;
-const accountHref = authenticated ? "/mis-mascotas" : "/login";
+const accountHref = authenticated ? "/" : "/login";
 ---
 
 <header class="site-header">
@@ -13,7 +14,7 @@ const accountHref = authenticated ? "/mis-mascotas" : "/login";
     <nav class="desktop-nav" aria-label="Navegación principal">
       <a href="/">Inicio</a>
       <a href="/mis-mascotas">Mis mascotas</a>
-      <a class="login-link" href={accountHref}><Icon name="user" size={18} /> {authenticated ? "Mi cuenta" : "Ingresar"}</a>
+      <a class="login-link" href={accountHref} data-logout={authenticated ? "true" : undefined}><Icon name="user" size={18} /> {authenticated ? "Cerrar sesión" : "Ingresar"}</a>
     </nav>
   </div>
 </header>
@@ -21,13 +22,28 @@ const accountHref = authenticated ? "/mis-mascotas" : "/login";
 <nav class="mobile-nav" aria-label="Navegación móvil">
   <a href="/" data-nav="home"><Icon name="home" /><span>Inicio</span></a>
   <a href="/mis-mascotas" data-nav="pets"><Icon name="pets" /><span>Mascotas</span></a>
-  <a href={accountHref} data-nav="user"><Icon name="user" /><span>Cuenta</span></a>
+  <a href={accountHref} data-nav="user" data-logout={authenticated ? "true" : undefined}><Icon name="user" /><span>{authenticated ? "Cerrar sesión" : "Cuenta"}</span></a>
 </nav>
 
-<script>
+<script is:inline define:vars={{ API_URL }}>
   const path = window.location.pathname;
   const current = path.startsWith("/mis-mascotas") ? "pets" : path.startsWith("/login") || path.startsWith("/register") ? "user" : "home";
   document.querySelector(`[data-nav="${current}"]`)?.setAttribute("aria-current", "page");
+
+  document.querySelectorAll("[data-logout='true']").forEach((link) => {
+    link.addEventListener("click", async (event) => {
+      event.preventDefault();
+      try {
+        await fetch(`${API_URL}/api/auth/sign-out`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+      } finally {
+        window.location.assign("/");
+      }
+    });
+  });
 </script>
 
 <style>
