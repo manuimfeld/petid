@@ -111,7 +111,7 @@ const whatsappUrl = pet
         <section class="profile-visual fade-up">
           <div class="status-chip"><span></span>{pet.status === "lost" ? "Buscando volver" : "Perfil verificado"}</div>
           <div class="pet-photo">
-            {pet.imageUrl ? <img src={pet.imageUrl} alt={`Foto de ${pet.name}`} /> : <Image src={paw} alt={`Ilustración de huella para ${pet.name}`} width={300} height={280} />}
+            {pet.imageUrl ? <img src={pet.imageUrl} alt={`Foto de ${pet.name}`} loading="eager" fetchpriority="high" decoding="async" /> : <Image src={paw} alt={`Ilustración de huella para ${pet.name}`} width={300} height={280} />}
           </div>
           <div class="name-block">
             <p class="eyebrow">Hola, mi nombre es</p>
