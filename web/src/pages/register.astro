@@ -16,7 +16,7 @@ import { API_URL } from "../lib/api";
       <form id="register-form" class="form-grid">
         <div class="field"><label for="name">Tu nombre</label><input class="input" id="name" name="name" autocomplete="name" maxlength="80" placeholder="¿Cómo te llamás?" required /></div>
         <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="tu@email.com" required /></div>
-        <div class="field"><label for="password">Contraseña</label><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Al menos 8 caracteres" required /><small>Usá una combinación que no reutilices en otros sitios.</small></div>
+        <div class="field"><label for="password">Contraseña</label><div class="password-control"><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Al menos 8 caracteres" required /><button type="button" data-password-toggle="password" aria-label="Mostrar contraseña">Mostrar</button></div><small>Usá una combinación que no reutilices en otros sitios.</small></div>
         <div class="form-message" id="form-message" role="status"></div>
         <button class="button button-primary button-full" type="submit">Crear mi cuenta <Icon name="arrow" /></button>
       </form>

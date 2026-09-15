@@ -38,5 +38,18 @@ const authenticated = sessionResult.status === 200;
     <Header authenticated={authenticated} />
     <slot />
     <Footer />
+    <script is:inline>
+      document.querySelectorAll("[data-password-toggle]").forEach((toggle) => {
+        toggle.addEventListener("click", () => {
+          const inputId = toggle.getAttribute("data-password-toggle");
+          const input = inputId ? document.getElementById(inputId) : null;
+          if (!(input instanceof HTMLInputElement)) return;
+          const visible = input.type === "text";
+          input.type = visible ? "password" : "text";
+          toggle.textContent = visible ? "Mostrar" : "Ocultar";
+          toggle.setAttribute("aria-label", visible ? "Mostrar contraseña" : "Ocultar contraseña");
+        });
+      });
+    </script>
   </body>
 </html>
