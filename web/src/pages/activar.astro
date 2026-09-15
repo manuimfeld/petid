@@ -1,0 +1,52 @@
+---
+import Icon from "../components/Icon.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Activar una medalla — PetID" noindex>
+  <main class="page narrow-page activate-page">
+    <section class="auth-intro fade-up">
+      <span class="mini-mark"><Icon name="scan" size={27} /></span>
+      <p class="eyebrow">Nueva mascota</p>
+      <h1>Activá tu medalla</h1>
+      <p class="lead">Ingresá el código que aparece debajo del QR o escaneá la medalla con la cámara.</p>
+    </section>
+    <section class="card form-card fade-up" style="--delay: 80ms">
+      <form id="activate-code-form" class="form-grid">
+        <div class="field">
+          <label for="code">Código de la medalla</label>
+          <input class="input" id="code" name="code" maxlength="32" placeholder="Ej. PETIDABC123" autocomplete="off" required />
+          <small>Respetá las letras y números del código.</small>
+        </div>
+        <div class="form-message" id="activate-message" role="status"></div>
+        <button class="button button-primary button-full" type="submit">Continuar <Icon name="arrow" /></button>
+      </form>
+    </section>
+  </main>
+</BaseLayout>
+
+<script is:inline>
+  const form = document.querySelector("#activate-code-form");
+  const input = document.querySelector("#code");
+  const message = document.querySelector("#activate-message");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const code = input.value.trim().toUpperCase();
+    if (!/^[A-Z0-9_-]+$/.test(code)) {
+      message.textContent = "Ingresá un código válido usando solo letras y números.";
+      message.dataset.visible = "true";
+      message.dataset.type = "error";
+      return;
+    }
+    window.location.assign(`/pet/${encodeURIComponent(code)}`);
+  });
+</script>
+
+<style>
+  .activate-page { padding-top: 34px; }
+  .auth-intro { text-align: center; }
+  .auth-intro h1 { font-size: clamp(2.15rem, 10vw, 3.4rem); }
+  .auth-intro .lead { margin-bottom: 24px; }
+  .mini-mark { display: grid; width: 56px; height: 56px; place-items: center; margin: 0 auto 20px; border-radius: 19px; color: var(--sky-700); background: var(--sky-100); }
+  .form-card { display: grid; gap: 21px; }
+</style>

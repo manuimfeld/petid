@@ -17,7 +17,7 @@ const pets = result.data?.pets ?? [];
   <main class="page pets-page">
     <section class="page-title fade-up">
       <div><p class="eyebrow">Mi familia</p><h1>Mis mascotas</h1><p class="lead">Sus perfiles, siempre cerca.</p></div>
-      {authenticated && <a class="avatar" href="/login" aria-label="Mi cuenta"><Icon name="user" /></a>}
+      {authenticated && <a class="avatar" href="/mis-mascotas" aria-label="Mi cuenta"><Icon name="user" /></a>}
     </section>
 
     {!authenticated ? (
@@ -32,7 +32,7 @@ const pets = result.data?.pets ?? [];
         <span class="empty-icon"><Icon name="scan" size={28} /></span>
         <h2>Todavía no hay mascotas</h2>
         <p>Escaneá una medalla PetID disponible para crear el primer perfil.</p>
-        <a class="button button-dark button-full" href="/pet/PETIDTEST002">Probar con un QR local</a>
+        <a class="button button-dark button-full" href="/activar">Activar una medalla</a>
       </section>
     ) : (
       <section class="pet-grid">
@@ -48,7 +48,7 @@ const pets = result.data?.pets ?? [];
             </div>
           </article>
         ))}
-        <a class="add-card fade-up" href="/pet/PETIDTEST002">
+        <a class="add-card fade-up" href="/activar">
           <span>+</span><div><b>Activar otra medalla</b><small>Sumá una mascota a tu familia</small></div>
         </a>
       </section>

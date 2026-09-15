@@ -2,6 +2,7 @@
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import "../styles/global.css";
+import { apiFetch, forwardedCookies } from "../lib/api";
 
 interface Props {
   title?: string;
@@ -14,6 +15,12 @@ const {
   description = "El perfil digital de tu mascota, siempre al alcance de un QR.",
   noindex = false,
 } = Astro.props;
+
+const sessionResult = await apiFetch("/api/v1/me", {
+  headers: forwardedCookies(Astro.request),
+  cache: "no-store",
+});
+const authenticated = sessionResult.status === 200;
 ---
 
 <!doctype html>
@@ -28,7 +35,7 @@ const {
     <title>{title}</title>
   </head>
   <body>
-    <Header />
+    <Header authenticated={authenticated} />
     <slot />
     <Footer />
   </body>

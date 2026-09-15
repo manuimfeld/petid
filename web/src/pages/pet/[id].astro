@@ -12,6 +12,11 @@ const result = await apiFetch<PublicQrResponse>(`/api/v1/pets/${encodeURICompone
 });
 
 let owned = false;
+const sessionResult = await apiFetch("/api/v1/me", {
+  headers: forwardedCookies(Astro.request),
+  cache: "no-store",
+});
+const authenticated = sessionResult.status === 200;
 if (result.data?.state === "activated") {
   const mine = await apiFetch<{ pets: OwnedPet[] }>("/api/v1/me/pets", {
     headers: forwardedCookies(Astro.request),
@@ -88,7 +93,7 @@ const whatsappUrl = pet
           </label>
 
           <div class="form-message" id="activation-message" role="status"></div>
-          <button class="button button-primary button-full" type="submit">Continuar y crear cuenta <Icon name="arrow" /></button>
+          <button class="button button-primary button-full" type="submit">{authenticated ? "Activar medalla" : "Continuar y crear cuenta"} <Icon name="arrow" /></button>
           <p class="secure-note"><Icon name="shield" size={17} /> Solo vos podrás editar este perfil.</p>
         </form>
       </>
@@ -136,7 +141,7 @@ const whatsappUrl = pet
   </main>
 </BaseLayout>
 
-<script is:inline define:vars={{ API_URL, id }}>
+<script is:inline define:vars={{ API_URL, id, authenticated }}>
   const photoInput = document.querySelector("#photo");
   const preview = document.querySelector(".photo-preview");
   photoInput?.addEventListener("change", () => {
@@ -225,27 +230,34 @@ const whatsappUrl = pet
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error === "QR_NOT_AVAILABLE" ? "Esta medalla acaba de ser activada." : "Revisá los datos e intentá nuevamente.");
       sessionStorage.setItem(`petid.activation.${id}`, data.draftToken);
-      window.location.assign(`/login?returnTo=${encodeURIComponent(`/pet/${id}?activate=1`)}`);
+      if (authenticated) {
+        await finishActivation(data.draftToken);
+      } else {
+        window.location.assign(`/login?returnTo=${encodeURIComponent(`/pet/${id}?activate=1`)}`);
+      }
     } catch (error) {
       showActivationMessage(error instanceof Error ? error.message : "No pudimos conectar con la API.");
       button.disabled = false;
     }
   });
 
+  async function finishActivation(draftToken) {
+    const response = await fetch(`${API_URL}/api/v1/qrs/${id}/activate`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ draftToken }),
+    });
+    if (!response.ok) throw new Error();
+    sessionStorage.removeItem(`petid.activation.${id}`);
+    window.location.replace(`/pet/${id}`);
+  }
+
   const query = new URLSearchParams(window.location.search);
   if (query.get("activate") === "1") {
     const draftToken = sessionStorage.getItem(`petid.activation.${id}`);
     if (draftToken) {
-      fetch(`${API_URL}/api/v1/qrs/${id}/activate`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ draftToken }),
-      }).then(async (response) => {
-        if (!response.ok) throw new Error();
-        sessionStorage.removeItem(`petid.activation.${id}`);
-        window.location.replace(`/pet/${id}`);
-      }).catch(() => showActivationMessage("No pudimos finalizar la activación. Volvé a iniciar sesión e intentá nuevamente."));
+      finishActivation(draftToken).catch(() => showActivationMessage("No pudimos finalizar la activación. Volvé a iniciar sesión e intentá nuevamente."));
     }
   }
 </script>
@@ -282,23 +294,22 @@ const whatsappUrl = pet
   .status-chip { position: absolute; z-index: 4; top: 17px; left: 17px; display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(8,15,19,.58); font-size: .65rem; font-weight: 750; backdrop-filter: blur(12px); }
   .status-chip span { width: 7px; height: 7px; border-radius: 50%; background: #59d99d; }
   .lost .status-chip span { background: #ff7a84; }
-  .pet-photo { position: relative; z-index: 2; height: 360px; overflow: hidden; background: linear-gradient(145deg, #17242c, #102d3b); }
-  .pet-photo > :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .pet-photo { position: relative; z-index: 2; height: 360px; overflow: hidden; background: linear-gradient(145deg, #dff5fd, #b7e4f2); }
+  .pet-photo > :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
   .pet-photo > :global(img[src*="petid-paw"]) { width: 64%; height: 64%; margin: 18% auto 0; object-fit: contain; opacity: .92; filter: drop-shadow(0 20px 24px rgba(0,0,0,.28)); }
-  .name-block { position: relative; z-index: 3; margin-top: -65px; padding: 55px 22px 24px; background: linear-gradient(to bottom, transparent, rgba(11,17,22,.96) 38%); }
+  .name-block { position: relative; z-index: 3; padding: 22px 22px 24px; background: var(--ink); }
   .name-block .eyebrow { margin-bottom: 4px; color: var(--sky-400); }
   .name-block h1 { margin: 0; font-size: 3.4rem; }
-  .name-block > p:last-child { margin: 8px 0 0; color: rgba(255,255,255,.72); font-size: .86rem; }
+  .name-block > p:last-child { margin: 8px 0 0; color: rgba(255,255,255,.72); font-size: .86rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
   .urgent-actions { display: grid; gap: 11px; margin-top: 14px; }
   .map-frame { height: 250px; overflow: hidden; }
   .map-frame iframe { width: 100%; height: 100%; border: 0; }
   .whatsapp-button { color: var(--white); background: linear-gradient(135deg, #2bd779, #16aa5d); box-shadow: 0 13px 28px rgba(22,170,93,.25); }
-  .location-card { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px; }
+  .location-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px; }
   .location-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 14px; color: var(--sky-700); background: var(--sky-100); }
   .location-card > span:nth-child(2) { display: grid; min-width: 0; }
   .location-card small { color: var(--muted); font-size: .65rem; }
-  .location-card b { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
-  .round-arrow { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: var(--paper); font-weight: 900; }
+  .location-card b { overflow-wrap: anywhere; font-size: .78rem; line-height: 1.35; white-space: normal; }
   .care-note { display: flex; gap: 11px; margin: 20px 6px; color: var(--muted); font-size: .75rem; }
   .care-note :global(.icon) { flex: 0 0 auto; color: var(--sky-600); }
   .care-note p { margin: 0; }

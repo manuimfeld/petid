@@ -1,6 +1,10 @@
 ---
 import Brand from "./Brand.astro";
 import Icon from "./Icon.astro";
+
+interface Props { authenticated?: boolean; }
+const { authenticated = false } = Astro.props;
+const accountHref = authenticated ? "/mis-mascotas" : "/login";
 ---
 
 <header class="site-header">
@@ -9,7 +13,7 @@ import Icon from "./Icon.astro";
     <nav class="desktop-nav" aria-label="Navegación principal">
       <a href="/">Inicio</a>
       <a href="/mis-mascotas">Mis mascotas</a>
-      <a class="login-link" href="/login"><Icon name="user" size={18} /> Ingresar</a>
+      <a class="login-link" href={accountHref}><Icon name="user" size={18} /> {authenticated ? "Mi cuenta" : "Ingresar"}</a>
     </nav>
   </div>
 </header>
@@ -17,7 +21,7 @@ import Icon from "./Icon.astro";
 <nav class="mobile-nav" aria-label="Navegación móvil">
   <a href="/" data-nav="home"><Icon name="home" /><span>Inicio</span></a>
   <a href="/mis-mascotas" data-nav="pets"><Icon name="pets" /><span>Mascotas</span></a>
-  <a href="/login" data-nav="user"><Icon name="user" /><span>Cuenta</span></a>
+  <a href={accountHref} data-nav="user"><Icon name="user" /><span>Cuenta</span></a>
 </nav>
 
 <script>
