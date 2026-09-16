@@ -9,34 +9,46 @@ import packaging from "../assets/petid-packaging.jpeg";
   title="PetID | Medalla QR para mascotas en Argentina"
   description="Identificá a tu perro o gato con una medalla QR PetID. Su perfil, datos de contacto y hogar siempre al alcance de quien lo encuentre."
 >
-  <script is:inline type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        name: "PetID",
-        url: "https://petid.com.ar/",
-        logo: "https://petid.com.ar/favicon.svg",
-        description: "Identificación inteligente para mascotas mediante medallas QR.",
-        areaServed: "AR",
-      },
-      {
-        "@type": "WebSite",
-        name: "PetID",
-        url: "https://petid.com.ar/",
-        inLanguage: "es-AR",
-      },
-    ],
-  })} />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          name: "PetID",
+          url: "https://www.petid.com.ar/",
+          logo: "https://www.petid.com.ar/favicon.svg",
+          description:
+            "Identificación inteligente para mascotas mediante medallas QR.",
+          areaServed: "AR",
+        },
+        {
+          "@type": "WebSite",
+          name: "PetID",
+          url: "https://www.petid.com.ar/",
+          inLanguage: "es-AR",
+        },
+      ],
+    })}
+  />
   <main class="page home-page">
     <section class="hero">
       <div class="hero-copy fade-up">
         <p class="eyebrow">Siempre cerca</p>
-        <h1>Una pequeña medalla.<br/><span>Una gran tranquilidad.</span></h1>
-        <p class="lead">PetID guarda la información esencial de tu mascota en un QR para que quien la encuentre pueda ayudarte a traerla de vuelta.</p>
+        <h1>Una pequeña medalla.<br /><span>Una gran tranquilidad.</span></h1>
+        <p class="lead">
+          PetID guarda la información esencial de tu mascota en un QR para que
+          quien la encuentre pueda ayudarte a traerla de vuelta.
+        </p>
         <div class="hero-actions">
-          <a class="button button-primary" href="/activar">Activar mi PetID <Icon name="arrow" /></a>
-          <a class="text-link" href="/pet/PETIDTEST001">Ver perfil de muestra <span>↗</span></a>
+          <a class="button button-primary" href="/activar"
+            >Activar mi PetID <Icon name="arrow" /></a
+          >
+          <a class="text-link" href="/pet/PETIDTEST001"
+            >Ver perfil de muestra <span>↗</span></a
+          >
         </div>
         <div class="trust-row">
           <span><Icon name="shield" size={18} /> Perfil protegido</span>
@@ -47,9 +59,21 @@ import packaging from "../assets/petid-packaging.jpeg";
       <div class="product-stage fade-up" style="--delay: 120ms">
         <span class="stage-label">Tu compañero, identificado</span>
         <div class="product-glow"></div>
-        <Image src={packaging} alt="Packaging y medalla PetID de color celeste" widths={[420, 700, 1024]} sizes="(max-width: 759px) 88vw, 480px" loading="eager" />
-        <div class="floating-note note-one"><Icon name="map" size={18} /><span><b>Ubicación</b> a un toque</span></div>
-        <div class="floating-note note-two"><Icon name="heart" size={18} /><span>Hecho para<br/><b>volver a casa</b></span></div>
+        <Image
+          src={packaging}
+          alt="Packaging y medalla PetID de color celeste"
+          widths={[420, 700, 1024]}
+          sizes="(max-width: 759px) 88vw, 480px"
+          loading="eager"
+        />
+        <div class="floating-note note-one">
+          <Icon name="map" size={18} /><span><b>Ubicación</b> a un toque</span>
+        </div>
+        <div class="floating-note note-two">
+          <Icon name="heart" size={18} /><span
+            >Hecho para<br /><b>volver a casa</b></span
+          >
+        </div>
       </div>
     </section>
 
@@ -57,7 +81,10 @@ import packaging from "../assets/petid-packaging.jpeg";
       <div class="section-heading fade-up">
         <p class="eyebrow">Simple de verdad</p>
         <h2>Tres pasos. Cero vueltas.</h2>
-        <p>La persona que encuentra a tu mascota no instala nada ni crea una cuenta.</p>
+        <p>
+          La persona que encuentra a tu mascota no instala nada ni crea una
+          cuenta.
+        </p>
       </div>
       <div class="steps">
         <article class="step-card fade-up" style="--delay: 60ms">
@@ -84,9 +111,11 @@ import packaging from "../assets/petid-packaging.jpeg";
     <section class="closing-card fade-up">
       <div>
         <p class="eyebrow">PetID</p>
-        <h2>Su historia y su hogar,<br/>en un solo lugar.</h2>
+        <h2>Su historia y su hogar,<br />en un solo lugar.</h2>
       </div>
-      <a class="button button-dark" href="/activar">Empezar ahora <Icon name="arrow" /></a>
+      <a class="button button-dark" href="/activar"
+        >Empezar ahora <Icon name="arrow" /></a
+      >
     </section>
   </main>
 </BaseLayout>
@@ -176,7 +205,7 @@ import packaging from "../assets/petid-packaging.jpeg";
     position: relative;
     z-index: 3;
     display: block;
-    color: rgba(255,255,255,.65);
+    color: rgba(255, 255, 255, 0.65);
     font-size: 0.7rem;
     font-weight: 750;
     letter-spacing: 0.13em;
@@ -203,20 +232,30 @@ import packaging from "../assets/petid-packaging.jpeg";
     align-items: center;
     gap: 8px;
     padding: 9px 11px;
-    border: 1px solid rgba(255,255,255,.18);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 13px;
-    color: rgba(255,255,255,.8);
+    color: rgba(255, 255, 255, 0.8);
     background: rgba(16, 24, 30, 0.72);
-    box-shadow: 0 12px 26px rgba(0,0,0,.3);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.3);
     font-size: 0.63rem;
     line-height: 1.35;
     backdrop-filter: blur(12px);
   }
 
-  .floating-note b { color: var(--white); }
-  .floating-note :global(.icon) { color: var(--sky-400); }
-  .note-one { left: 12px; bottom: 22%; }
-  .note-two { right: 12px; bottom: 8%; }
+  .floating-note b {
+    color: var(--white);
+  }
+  .floating-note :global(.icon) {
+    color: var(--sky-400);
+  }
+  .note-one {
+    left: 12px;
+    bottom: 22%;
+  }
+  .note-two {
+    right: 12px;
+    bottom: 8%;
+  }
 
   .section-heading {
     max-width: 540px;
@@ -237,7 +276,7 @@ import packaging from "../assets/petid-packaging.jpeg";
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: rgba(255,255,255,.78);
+    background: rgba(255, 255, 255, 0.78);
   }
 
   .step-number {
@@ -276,17 +315,26 @@ import packaging from "../assets/petid-packaging.jpeg";
     border-radius: var(--radius-lg);
     color: var(--white);
     background:
-      radial-gradient(circle at 90% 10%, rgba(88,198,242,.35), transparent 20rem),
+      radial-gradient(
+        circle at 90% 10%,
+        rgba(88, 198, 242, 0.35),
+        transparent 20rem
+      ),
       var(--ink);
     box-shadow: var(--shadow-lg);
   }
 
-  .closing-card .eyebrow { color: var(--sky-400); }
-  .closing-card .button-dark { color: var(--ink); background: var(--white); }
+  .closing-card .eyebrow {
+    color: var(--sky-400);
+  }
+  .closing-card .button-dark {
+    color: var(--ink);
+    background: var(--white);
+  }
 
   @media (min-width: 760px) {
     .hero {
-      grid-template-columns: 1.03fr .97fr;
+      grid-template-columns: 1.03fr 0.97fr;
       gap: 58px;
       min-height: 650px;
     }
@@ -297,11 +345,28 @@ import packaging from "../assets/petid-packaging.jpeg";
       gap: 24px;
     }
 
-    .product-stage { min-height: 540px; padding: 34px; }
-    .product-stage :global(img) { max-height: 480px; }
-    .steps { grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .step-card { min-height: 240px; padding: 25px; }
-    .closing-card { grid-template-columns: 1fr auto; align-items: center; padding: 50px; }
-    .closing-card .button { width: auto; }
+    .product-stage {
+      min-height: 540px;
+      padding: 34px;
+    }
+    .product-stage :global(img) {
+      max-height: 480px;
+    }
+    .steps {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    .step-card {
+      min-height: 240px;
+      padding: 25px;
+    }
+    .closing-card {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 50px;
+    }
+    .closing-card .button {
+      width: auto;
+    }
   }
 </style>

@@ -3,7 +3,7 @@ export function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://petid.com.ar/</loc>
+    <loc>https://www.petid.com.ar/</loc>
     <lastmod>${lastModified}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
